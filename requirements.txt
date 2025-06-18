@@ -1,0 +1,12 @@
+#pip freeze > requirements.txt
+
+streamlit
+python-dotenv
+torch
+transformers
+accelerate
+bitsandbytes
+sentence-transformers
+faiss-cpu
+pandas
+numpy
