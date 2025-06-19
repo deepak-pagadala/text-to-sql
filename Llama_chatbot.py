@@ -22,28 +22,26 @@ db_path = 'chatbot22.db'
 ntee_path = 'NTEE_descriptions.csv'
 samplequery_path = 'sample_query.csv'  
 
-
-device = "mps" if torch.backends.mps.is_available() else "cpu"
 LLAMA_MODEL_ID = "meta-llama/Llama-2-7b-chat-hf"
+
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
 tokenizer = AutoTokenizer.from_pretrained(
     LLAMA_MODEL_ID,
-    token=HF_TOKEN,                   # note: transformers v5 now uses `token` not `use_auth_token`
+    token=HF_TOKEN,
 )
-model = AutoModelForCausalLM.from_pretrained(
+llama_model = AutoModelForCausalLM.from_pretrained(
     LLAMA_MODEL_ID,
-    device_map="auto",
+    device_map="auto",         # let accelerate shard it
     torch_dtype=torch.float16,
     token=HF_TOKEN,
-).to(device)
-
-
-
+)
 
 def llama_generate(prompt: str) -> str:
     wrapped = f"<s>[INST] {prompt} [/INST]</s>"
     inputs = tokenizer(wrapped, return_tensors="pt").to(device)
-    outputs = model.generate(**inputs, max_new_tokens=256)
+    outputs = llama_model.generate(**inputs, max_new_tokens=256)
     text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return text.split("[/INST]")[-1].strip()
 
@@ -66,7 +64,7 @@ COLUMN_MAPPING = {
     "org_num_employees": "number_of_employees_in_organization",
     "org_num_volunteers": "number_of_volunteers_in_organization",
     "org_total_expenses": "total_expenses_of_organization",
-    "org_assets": "organization_assests",
+    "org_assets": "organization_assets",
     "org_liabilities": "organization_liabilities",
     "org_total_revenue": "total_revenue_of_organization",
     "org_type": "organization_type",
@@ -123,7 +121,7 @@ COLUMN_MAPPING = {
     "g_ntee_major10" : "grantee_ntee_description_abbreviation",
     "g_ntee_major12" : "grantee_ntee_major12",
     "f_amt_assets_total" : "foundation_assets_total",
-    "f_amt_exp_grants" : "foundation_amountt_exp_grants",
+    "f_amt_exp_grants" : "foundation_amount_exp_grants",
     "f_num_employees" : "foundation_number_of_employees",
     "f_num_volunteers" : "foundation_number_of_volunteers",
     "g_amt_assets_total" : "grantee_assets_total",
