@@ -33,7 +33,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 )
 llama_model = AutoModelForCausalLM.from_pretrained(
     LLAMA_MODEL_ID,
-    device_map="auto",         # let accelerate shard it
+    device_map="auto",         
     torch_dtype=torch.float16,
     token=HF_TOKEN,
 )
@@ -332,7 +332,7 @@ Do NOT use the following columns in any query: {RESTRICTED_COLUMNS}.
 Return ONLY the SQL query in a single line. Do not include any explanations.
 """.strip()
 
-    # Call Llama-2 via our wrapper
+    # Call Llama-2 via wrapper
     llm_output = llama_generate(prompt)
 
     # Split into lines and return up to three queries
@@ -385,7 +385,6 @@ def summarize_findings_with_llm(query, schema, results):
     # Format results
     result_text = "\n".join(str(record) for record in results)
 
-    # Optionally pull sector info from the last column
     sector_info = ""
     if results and isinstance(results[0], (list, tuple)) and len(results[0]) >= 3:
         sector_desc = results[0][-1]
@@ -407,7 +406,7 @@ Generate a concise, human-friendly summary of the results in about 50 words.
 Be specific about the sector or topic.
 """.strip()
 
-    # Call Llama-2 via our wrapper
+    # Call Llama-2 via wrapper
     summary = llama_generate(prompt)
     return summary
 
@@ -451,10 +450,8 @@ def run_pipeline(user_query, db_path):
                         enriched_results.append(tuple(row))
                     results = enriched_results
             except Exception as e:
-                # Optional: log or handle error
                 pass
 
-            # This line should not be indented under the try/except or if
             summary = summarize_findings_with_llm(user_query, schemas, results)
             return cleaned_query, results, summary
 
@@ -488,7 +485,7 @@ def get_top_similar_queries(user_query):
     top_similar = [(queries[idx], 1 / (1 + dist), idx) for dist, idx in zip(distances[0], indices[0])]
     return top_similar, df
 
-# --- Chat Interface ---
+# Chat Interface
 def show_message(message, is_user):
     align = "user" if is_user else "assistant"
     st.chat_message(align).markdown(message)
